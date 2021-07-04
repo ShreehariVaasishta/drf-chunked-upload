@@ -39,9 +39,8 @@ class ChunkedUploadBaseView(GenericAPIView):
         By default, user can only continue uploading his/her own uploads.
         """
         queryset = self.model.objects.all()
-        if USER_RESTRICTED:
-            if is_authenticated(self.request.user):
-                queryset = queryset.filter(user=self.request.user)
+        if USER_RESTRICTED and is_authenticated(self.request.user):
+            queryset = queryset.filter(user=self.request.user)
         return queryset
 
     def get_response_data(self, chunked_upload, request):
@@ -140,8 +139,8 @@ class ChunkedUploadView(ListModelMixin, RetrieveModelMixin,
         if chunked_upload.expired:
             raise ChunkedUploadError(status=status.HTTP_410_GONE,
                                      detail='Upload has expired')
-        error_msg = 'Upload has already been marked as "%s"'
         if chunked_upload.status == chunked_upload.COMPLETE:
+            error_msg = 'Upload has already been marked as "%s"'
             raise ChunkedUploadError(status=status.HTTP_400_BAD_REQUEST,
                                      detail=error_msg % 'complete')
 
